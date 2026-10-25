@@ -159,3 +159,44 @@
     justify-content: center;
   }
 }
+
+/* ── Auth controls group ── */
+.authControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.ctaSecondary {
+  flex-shrink: 0;
+  padding: 0.45rem 1.25rem;
+  border-radius: 0.5rem;
+  border: 1.5px solid #e0ddd7;
+  background: transparent;
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.ctaSecondary:hover {
+  background: #ede9e3;
+  border-color: #ccc8c2;
+}
+
+.drawerAuth {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (max-width: 680px) {
+  .authControls {
+    display: none;
+  }
+}

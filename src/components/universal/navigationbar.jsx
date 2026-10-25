@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import { SignInButton, SignUpButton, Show, UserButton } from "@clerk/nextjs";
 import styles from "./navigationbar.module.css";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
-  { label: "Categories", href: "/categories" },
-  { label: "Blog", href: "/blog" },
+  { label: "About", href: "/about" },
 ];
 
 export default function NavigationBar() {
@@ -29,10 +29,22 @@ export default function NavigationBar() {
           ))}
         </ul>
 
-        {/* Desktop CTA */}
-        <button type="button" className={styles.cta}>
-          Submit a Plugin
-        </button>
+        {/* Desktop auth controls */}
+        <div className={styles.authControls}>
+          <Suspense>
+            <Show when="signed-out">
+              <SignInButton mode="redirect">
+                <button type="button" className={styles.ctaSecondary}>Sign In</button>
+              </SignInButton>
+              <SignUpButton mode="redirect">
+                <button type="button" className={styles.cta}>Sign Up</button>
+              </SignUpButton>
+            </Show>
+            <Show when="signed-in">
+              <UserButton />
+            </Show>
+          </Suspense>
+        </div>
 
         {/* Mobile hamburger */}
         <button
@@ -67,6 +79,21 @@ export default function NavigationBar() {
         <button type="button" className={styles.drawerCta} onClick={() => setMenuOpen(false)}>
           Submit a Plugin
         </button>
+        <div className={styles.drawerAuth}>
+          <Suspense>
+            <Show when="signed-out">
+              <SignInButton mode="redirect">
+                <button type="button" className={styles.ctaSecondary} onClick={() => setMenuOpen(false)}>Sign In</button>
+              </SignInButton>
+              <SignUpButton mode="redirect">
+                <button type="button" className={styles.drawerCta} onClick={() => setMenuOpen(false)}>Sign Up</button>
+              </SignUpButton>
+            </Show>
+            <Show when="signed-in">
+              <UserButton />
+            </Show>
+          </Suspense>
+        </div>
       </div>
     </>
   );
