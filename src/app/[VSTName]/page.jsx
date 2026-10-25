@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
+import { currentUser } from "@clerk/nextjs/server";
 import { createClient } from "@/utils/supabase/server";
 import NavigationBar from "@/components/universal/navigationbar";
+import ReviewForm from "./ReviewForm";
 import styles from "./page.module.css";
 
 export const instant = false;
 
-// Convert a URL slug back to a name pattern for querying.
-// e.g. "vital-synth" → "vital synth" (case-insensitive match in Supabase)
 function slugToName(slug) {
   return decodeURIComponent(slug).replace(/-/g, " ");
 }
@@ -28,7 +28,8 @@ async function getVst(slug) {
         id,
         username,
         review_text,
-        review_date
+        review_date,
+        stars
       )
     `)
     .ilike("name", slugToName(slug))
@@ -50,11 +51,12 @@ export async function generateMetadata({ params }) {
 
 export default async function VSTPage({ params }) {
   const { VSTName } = await params;
-  const vst = await getVst(VSTName);
+  const [vst, user] = await Promise.all([getVst(VSTName), currentUser()]);
 
   if (!vst) notFound();
 
   const reviewCount = vst.reviews.length;
+  const isSignedIn = !!user;
 
   return (
     <main>
@@ -95,7 +97,19 @@ export default async function VSTPage({ params }) {
           </div>
         </div>
 
-        {/* Reviews */}
+        {/* Review form */}
+        <section className={styles.writeReview}>
+          {isSignedIn ? (
+            <ReviewForm vstId={vst.id} vstSlug={VSTName} />
+          ) : (
+            <p className={styles.signInPrompt}>
+              <a href="/sign-in" className={styles.signInLink}>Sign in</a>{" "}
+              to leave a review.
+            </p>
+          )}
+        </section>
+
+        {/* Reviews list */}
         <section className={styles.reviews}>
           <h2 className={styles.reviewsHeading}>
             {reviewCount === 0
@@ -104,15 +118,25 @@ export default async function VSTPage({ params }) {
           </h2>
 
           {reviewCount === 0 ? (
-            <p className={styles.empty}>
-              Be the first to review {vst.name}.
-            </p>
+            <p className={styles.empty}>Be the first to review {vst.name}.</p>
           ) : (
             <ul className={styles.reviewList}>
               {vst.reviews.map((review) => (
                 <li key={review.id} className={styles.reviewCard}>
                   <div className={styles.reviewMeta}>
                     <span className={styles.username}>{review.username}</span>
+                    {review.stars != null && (
+                      <span className={styles.reviewStars} aria-label={`${review.stars} out of 5 stars`}>
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <span
+                            key={n}
+                            className={n <= review.stars ? styles.starFilled : styles.starEmpty}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </span>
+                    )}
                     <span className={styles.date}>
                       {new Date(review.review_date).toLocaleDateString("en-US", {
                         year: "numeric",
